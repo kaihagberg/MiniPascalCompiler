@@ -2,7 +2,6 @@ package test;
 
 import org.junit.Test;
 import parser.MyParser;
-import java.io.File;
 
 /**
  *  Test for MyParser using program method and sample file
@@ -10,7 +9,9 @@ import java.io.File;
 public class MyParserTest {
 
     @Test
-    public void program() throws Exception {
-
+    public void programTest() throws Exception {
+        MyParser instance = new MyParser("src/test/simple.pas", true);
+        instance.program();
+        System.out.println("It parsed");
     }
 }

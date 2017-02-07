@@ -612,15 +612,15 @@ public class MyScanner {
           case 5: break;
           case 2: 
             { // found number
-                    ExpToken t = new ExpToken(yytext(), ExpTokenType.NUMBER);
+                    Token t = new Token(yytext(), TokenType.NUMBER);
                     return t;
             }
           case 6: break;
           case 3: 
             { // found symbol
                     String lexeme = yytext();
-                    ExpTokenType ett = table.get(lexeme);
-                    ExpToken t = new ExpToken(yytext(), ett);
+                    TokenType ett = table.get(lexeme);
+                    Token t = new Token(yytext(), ett);
                     return t;
             }
           case 7: break;

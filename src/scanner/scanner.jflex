@@ -41,7 +41,7 @@ whitespace		= [ \n\t]
 
 {number}        {
                     // found number
-                    ExpToken t = new ExpToken(yytext(), ExpTokenType.NUMBER);
+                    Token t = new Token(yytext(), TokenType.NUMBER);
                     return t;
                 }
  				
@@ -50,8 +50,8 @@ whitespace		= [ \n\t]
 {symbol}       {
                     // found symbol
                     String lexeme = yytext();
-                    ExpTokenType ett = table.get(lexeme);
-                    ExpToken t = new ExpToken(yytext(), ett);
+                    TokenType ett = table.get(lexeme);
+                    Token t = new Token(yytext(), ett);
                     return t;
                 }
  
