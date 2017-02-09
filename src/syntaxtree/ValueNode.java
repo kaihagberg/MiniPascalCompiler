@@ -30,6 +30,10 @@ public class ValueNode extends ExpressionNode {
     @Override
     public boolean equals(Object o) {
         boolean answer = false;
-        if(o )
+        if(o instanceof ValueNode) {
+            ValueNode other = (ValueNode)o;
+
+        }
+        return answer;
     }
 }
