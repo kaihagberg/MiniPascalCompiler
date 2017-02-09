@@ -46,6 +46,12 @@ whitespace		= [ \n\t]
                     Token t = new Token(yytext(), TokenType.NUMBER);
                     return t;
                 }
+
+{word}          {
+                    // found word
+                    Token t = new Token(yytext(), TokenType.ID);
+                    return t;
+                }
  				
 {whitespace}	{ /* ignore whitespace */ }
 

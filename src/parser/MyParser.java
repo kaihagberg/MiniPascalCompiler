@@ -328,7 +328,11 @@ public class MyParser {
                 break;
             case ID:
                 match(TokenType.ID);
+                // add if statement here
                 break;
+            //case NOT:
+            //    match(TokenType.NOT);
+            //    break;
             default:
                 error("Factor");
                 break;
