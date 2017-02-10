@@ -32,35 +32,48 @@ letter         = [a-zA-Z]
 word           = {letter}+
 digit          = [0-9]
 number         = {digit}+
-symbol         = "+" | "-" | "*" | "/" | "(" | ")"
-whitespace		= [ \n\t]
+whitespace	   = [ \n\t\r]|(([\{])([^\{])*([\}]))
+symbol 		 	  = [;,.:\[\]()+-=<>\*/]
+id 		 	 	  = ({letter}+)({letter}|{digit})*
+symbols 	 	  = {symbol}|:=|<=|>=|<>
+optional_fraction = ([.])({number})
+optional_exponent = ([E]([+]|[-])?{number})
+num 			  = {number}{optional_fraction}?{optional_exponent}?{optional_fraction}?
+other             = .
  
  
 %%
  
 /* Lexical Rules */
 
+{id}            {
 
-{number}        {
-                    // found number
-                    Token t = new Token(yytext(), TokenType.NUMBER);
-                    return t;
+                    TokenType tt = table.get(yytext());
+                        if(tt == null){
+                		    return new Token(yytext(), TokenType.ID);
+                		    }
+                		    else{
+                		        return new Token(yytext(), tt);
+                		    }
+
                 }
 
-{word}          {
-                    // found word
-                    Token t = new Token(yytext(), TokenType.ID);
-                    return t;
+
+{num}           {
+                    // found number
+                    return new Token(yytext(), TokenType.NUMBER);
                 }
  				
-{whitespace}	{ /* ignore whitespace */ }
+{whitespace}	{   /* ignore whitespace and comments */
 
-{symbol}       {
-                    // found symbol
-                    String lexeme = yytext();
-                    TokenType ett = table.get(lexeme);
-                    Token t = new Token(yytext(), ett);
-                    return t;
+                    if((yytext().charAt(0)=='{')&&(yytext().charAt(yytext().length()-1)=='}')) {
+                        System.out.println("Comment: " + yytext());
+                    }
+                }
+
+{symbols}       {
+                    TokenType tt = table.get(yytext());
+                    return(new Token(yytext(),tt));
                 }
  
 .				{ 

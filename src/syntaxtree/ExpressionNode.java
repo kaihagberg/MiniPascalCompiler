@@ -12,6 +12,6 @@ public class ExpressionNode {
      */
     public String indentedToString(int level) {
         String answer = "";
-        
+        return null;
     }
 }
