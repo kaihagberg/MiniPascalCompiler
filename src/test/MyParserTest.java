@@ -14,4 +14,30 @@ public class MyParserTest {
         instance.program();
         System.out.println("It parsed");
     }
+
+    @Test
+    public void declarations() throws Exception {
+        MyParser instance = new MyParser("var foo: integer;" ,false);
+        instance.declarations();
+        System.out.println("SUCCESS!\n");
+
+        MyParser instance2 = new MyParser("var voo,doo: array[1:20] of real;" ,false);
+        instance2.declarations();
+        System.out.println("SUCCESS!\n");
+    }
+
+    @Test
+    public void subprogram_declaration() throws Exception {
+        String sample = "function test( foo:real) :real;" + "var voo,doo: array[1:10] of real;" + "begin end .";
+        MyParser instance = new MyParser(sample,false);
+        instance.subprogram_declaration();
+        System.out.println("SUCCESS!\n");
+
+        sample = "procedure test(foo:real );" + "var voo,doo: array[10:4] of real;" + "begin end .";
+        instance = new MyParser(sample,false);
+        instance.subprogram_declaration();
+        System.out.println("SUCCESS!\n");
+    }
+
+    //TODO: Add more test cases
 }

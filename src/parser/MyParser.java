@@ -69,7 +69,7 @@ public class MyParser {
         }
     }
 
-    private void identifier_list() {
+    public void identifier_list() {
         match(TokenType.ID);
         if (lookahead.getType() == TokenType.COMMA) {
             match(TokenType.COMMA);
@@ -77,7 +77,7 @@ public class MyParser {
         }
     }
 
-    private void declarations() {
+    public void declarations() {
         if (lookahead.getType() == TokenType.VAR) {
             match(TokenType.VAR);
             identifier_list();
@@ -90,13 +90,14 @@ public class MyParser {
         }
     }
 
-    private void type() {
+    public void type() {
         if (lookahead.getType() == TokenType.ARRAY) {
             match(TokenType.ARRAY);
             match(TokenType.LEFT_BRACKET);
             match(TokenType.NUMBER);
             match(TokenType.COLON);
             match(TokenType.NUMBER);
+            match(TokenType.RIGHT_BRACKET);
             match(TokenType.OF);
             standard_type();
         } else if (lookahead.getType() == TokenType.INTEGER || lookahead.getType() == TokenType.REAL) {
@@ -106,7 +107,7 @@ public class MyParser {
         }
     }
 
-    private void standard_type() {
+    public void standard_type() {
         switch (lookahead.getType()) {
             case INTEGER:
                 match(TokenType.INTEGER);
@@ -119,26 +120,25 @@ public class MyParser {
         }
     }
 
-    private void subprogram_declarations() {
+    public void subprogram_declarations() {
         if (lookahead.getType() == TokenType.FUNCTION || lookahead.getType() == TokenType.PROCEDURE) {
             subprogram_declaration();
-            if (lookahead.getType() == TokenType.SEMI_COLON) {
-                match(TokenType.SEMI_COLON);
-                subprogram_declarations();
-            }
-        } else {
+            match(TokenType.SEMI_COLON);
+            subprogram_declarations();
+        }
+        else {
             //lambda case
         }
     }
 
-    private void subprogram_declaration() {
+    public void subprogram_declaration() {
         subprogram_head();
         declarations();
         subprogram_declarations();
         compound_statement();
     }
 
-    private void subprogram_head() {
+    public void subprogram_head() {
         if (lookahead.getType() == TokenType.FUNCTION) {
             match(TokenType.FUNCTION);
             match(TokenType.ID);
@@ -152,9 +152,12 @@ public class MyParser {
             arguments();
             match(TokenType.SEMI_COLON);
         }
+        else {
+            error("Not a subprogram_head");
+        }
     }
 
-    private void arguments() {
+    public void arguments() {
         if (lookahead.getType() == TokenType.LEFT_PAREN) {
             match(TokenType.LEFT_PAREN);
             parameter_list();
@@ -164,9 +167,9 @@ public class MyParser {
         }
     }
 
-    private void parameter_list() {
+    public void parameter_list() {
         identifier_list();
-        match(TokenType.SEMI_COLON);
+        match(TokenType.COLON);
         type();
         if (lookahead.getType() == TokenType.SEMI_COLON) {
             match(TokenType.SEMI_COLON);
@@ -174,7 +177,7 @@ public class MyParser {
         }
     }
 
-    private void compound_statement() {
+    public void compound_statement() {
         if (lookahead.getType() == TokenType.BEGIN) {
             match(TokenType.BEGIN);
             optional_statements();
@@ -184,7 +187,7 @@ public class MyParser {
         }
     }
 
-    private void optional_statements() {
+    public void optional_statements() {
         TokenType nextType = lookahead.getType();
         if (nextType == TokenType.ID || nextType == TokenType.BEGIN || nextType == TokenType.IF || nextType == TokenType.WHILE) {
             statement_list();
@@ -193,7 +196,7 @@ public class MyParser {
         }
     }
 
-    private void statement_list() {
+    public void statement_list() {
         statement();
         if (lookahead.getType() == TokenType.SEMI_COLON) {
             match(TokenType.SEMI_COLON);
@@ -201,7 +204,7 @@ public class MyParser {
         }
     }
 
-    private void statement() {
+    public void statement() {
         switch (lookahead.getType()) {
             case ID:
                 match(TokenType.ID);
@@ -237,26 +240,26 @@ public class MyParser {
         }
     }
 
-    private void variable() {
+    public void variable() {
         expression();
         match(TokenType.RIGHT_BRACKET);
     }
 
-    private void procedure_statement() {
+    public void procedure_statement() {
         match(TokenType.LEFT_PAREN);
         expression_list();
         match(TokenType.RIGHT_PAREN);
     }
 
-    private void expression_list() {
+    public void expression_list() {
         expression();
-        if (lookahead.getType() == TokenType.SEMI_COLON) {
-            match(TokenType.SEMI_COLON);
+        if (lookahead.getType() == TokenType.COMMA) {
+            match(TokenType.COMMA);
             expression_list();
         }
     }
 
-    private void expression() {
+    public void expression() {
         simple_expression();
         if (isRelop(lookahead)) {
             relop();
@@ -266,7 +269,7 @@ public class MyParser {
         }
     }
 
-    private void simple_expression() {
+    public void simple_expression() {
         if (isTerm(lookahead)) {
             term();
             simple_part();
@@ -277,7 +280,7 @@ public class MyParser {
         }
     }
 
-    private void simple_part() {
+    public void simple_part() {
         if (lookahead.getType() == TokenType.PLUS || lookahead.getType() == TokenType.MINUS) {
             addop();
             term();
@@ -339,7 +342,7 @@ public class MyParser {
         }
     }
 
-    private void sign() {
+    public void sign() {
         switch (lookahead.getType()) {
             case MINUS:
                 match(TokenType.MINUS);
@@ -352,7 +355,7 @@ public class MyParser {
         }
     }
 
-    private boolean isTerm(Token token) {
+    public boolean isTerm(Token token) {
         boolean answer = false;
         TokenType nextType = token.getType();
         if (nextType == TokenType.ID || nextType == TokenType.NUMBER || nextType == TokenType.NOT) {
@@ -361,7 +364,7 @@ public class MyParser {
         return answer;
     }
 
-    private void relop() {
+    public void relop() {
         switch (lookahead.getType()) {
             case EQUALS:
                 match(TokenType.EQUALS);
@@ -386,7 +389,7 @@ public class MyParser {
         }
     }
 
-    private boolean isRelop(Token token) {
+    public boolean isRelop(Token token) {
         boolean answer = false;
         TokenType nextType = token.getType();
         if (nextType == TokenType.EQUALS || nextType == TokenType.NOT_EQUAL || nextType == TokenType.LESS_THAN ||
@@ -442,7 +445,7 @@ public class MyParser {
      * @param token The token to check.
      * @return true if the token is a mulop, false otherwise
      */
-    private boolean isMulop(Token token) {
+    public boolean isMulop(Token token) {
         boolean answer = false;
         if (token.getType() == TokenType.MULTIPLY ||
                 token.getType() == TokenType.DIVIDE) {
@@ -503,6 +506,6 @@ public class MyParser {
         System.out.println( "Error " + message + " at line " +
                 this.scanner.getLine() + " column " +
                 this.scanner.getColumn());
-        System.exit(0);
+        System.exit(1);
     }
 }
