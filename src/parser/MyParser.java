@@ -299,18 +299,18 @@ public class MyParser {
      */
     public void term() {
         factor();
-        term_prime();
+        term_part();
     }
 
     /**
-     * Executes the rule for the term prime; non-terminal symbol in
+     * Executes the rule for the term_part; non-terminal symbol in
      * the expression grammar.
      */
-    public void term_prime() {
+    public void term_part() {
         if (isMulop(lookahead)) {
             mulop();
             factor();
-            term_prime();
+            term_part();
         } else {
             // lambda option
         }
@@ -324,7 +324,7 @@ public class MyParser {
         switch (lookahead.getType()) {
             case LEFT_PAREN:
                 match(TokenType.LEFT_PAREN);
-                exp();
+                expression();
                 match(TokenType.RIGHT_PAREN);
                 break;
             case NUMBER:
@@ -399,30 +399,6 @@ public class MyParser {
             answer = true;
         }
         return answer;
-    }
-
-    /**
-     * Executes the rule for the exp non-terminal symbol in
-     * the expression grammar.
-     */
-    public void exp() {
-        term();
-        exp_prime();
-    }
-
-    /**
-     * Executes the rule for the exp prime; non-terminal symbol in
-     * the expression grammar.
-     */
-    public void exp_prime() {
-        if (lookahead.getType() == TokenType.PLUS ||
-                lookahead.getType() == TokenType.MINUS) {
-            addop();
-            term();
-            exp_prime();
-        } else {
-            // lambda option
-        }
     }
 
     /**

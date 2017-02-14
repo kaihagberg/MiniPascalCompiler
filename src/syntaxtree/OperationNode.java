@@ -7,9 +7,6 @@ import scanner.TokenType;
  */
 public class OperationNode extends ExpressionNode {
 
-    /**
-     *
-     */
     private ExpressionNode left;
 
     private ExpressionNode right;
@@ -37,4 +34,10 @@ public class OperationNode extends ExpressionNode {
     public void setLeft(ExpressionNode node) {
         this.left = node;
     }
+
+    public void setRight(ExpressionNode node) {
+        this.right = node;
+    }
+
+
 }
