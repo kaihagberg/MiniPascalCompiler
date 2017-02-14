@@ -241,8 +241,11 @@ public class MyParser {
     }
 
     public void variable() {
-        expression();
-        match(TokenType.RIGHT_BRACKET);
+        if(lookahead.getType() == TokenType.LEFT_BRACKET) {
+            match(TokenType.LEFT_BRACKET);
+            expression();
+            match(TokenType.RIGHT_BRACKET);
+        }
     }
 
     public void procedure_statement() {
@@ -318,8 +321,6 @@ public class MyParser {
      * the expression grammar.
      */
     public void factor() {
-        // Executed this decision as a switch instead of an
-        // if-else chain. Either way is acceptable.
         switch (lookahead.getType()) {
             case LEFT_PAREN:
                 match(TokenType.LEFT_PAREN);

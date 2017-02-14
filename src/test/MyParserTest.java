@@ -16,7 +16,7 @@ public class MyParserTest {
     }
 
     @Test
-    public void declarations() throws Exception {
+    public void declarationsTest() throws Exception {
         MyParser instance = new MyParser("var foo: integer;" ,false);
         instance.declarations();
         System.out.println("SUCCESS!\n");
@@ -27,7 +27,7 @@ public class MyParserTest {
     }
 
     @Test
-    public void subprogram_declaration() throws Exception {
+    public void subprogram_declarationTest() throws Exception {
         String sample = "function test( foo:real) :real;" + "var voo,doo: array[1:10] of real;" + "begin end .";
         MyParser instance = new MyParser(sample,false);
         instance.subprogram_declaration();
@@ -36,6 +36,14 @@ public class MyParserTest {
         sample = "procedure test(foo:real );" + "var voo,doo: array[10:4] of real;" + "begin end .";
         instance = new MyParser(sample,false);
         instance.subprogram_declaration();
+        System.out.println("SUCCESS!\n");
+    }
+
+    //TODO: Fix this test and corresponding method as they currently do not work
+    @Test
+    public void variableTest() throws Exception {
+        MyParser instance = new MyParser("var[98];", true);
+        instance.variable();
         System.out.println("SUCCESS!\n");
     }
 
