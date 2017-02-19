@@ -5,6 +5,8 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.StringReader;
+import java.util.ArrayList;
+
 import scanner.MyScanner;
 import scanner.Token;
 import scanner.TokenType;
@@ -25,11 +27,18 @@ public class MyParser {
 
     private Token lookahead;
     private MyScanner scanner;
+    public SymbolTable symbolTable;
+    private boolean withoutError = true;
 
     ///////////////////////////////
     //       Constructors
     ///////////////////////////////
 
+    /**
+     * Constructor for the parser
+     * @param text filepath for text being parsed
+     * @param isFilename boolean that is true if file is being passed
+     */
     public MyParser(String text, boolean isFilename) {
         if (isFilename) {
             FileInputStream fis = null;
@@ -49,16 +58,27 @@ public class MyParser {
         } catch (IOException ex) {
             error("Scan error");
         }
+        symbolTable = new SymbolTable();
     }
 
     ///////////////////////////////
     //       Methods
     ///////////////////////////////
 
-    public void program() {
+    /**
+     * Main method in the recognizer. This will recursively call all other methods.
+     * @return returns true if no errors are found
+     */
+    public boolean program() {
         if (lookahead.getType() == TokenType.PROGRAM) {
             match(TokenType.PROGRAM);
-            match(TokenType.ID);
+            if(lookahead.getType() == TokenType.ID) {
+                symbolTable.add(lookahead.getLexeme(), TokenType.PROGRAM, "", null, null);
+                match(TokenType.ID);
+            }
+            else {
+                error("Expected program identifier");
+            }
             match(TokenType.SEMI_COLON);
             declarations();
             subprogram_declarations();
@@ -67,22 +87,33 @@ public class MyParser {
         } else {
             error("program");
         }
+        return withoutError;
     }
 
-    public void identifier_list() {
+    /**
+     *
+     * @return
+     */
+    public ArrayList<String> identifier_list() {
+        ArrayList<String> identifierList = new ArrayList<>();
+        identifierList.add(lookahead.getLexeme());
         match(TokenType.ID);
         if (lookahead.getType() == TokenType.COMMA) {
             match(TokenType.COMMA);
-            identifier_list();
+            identifierList.addAll(identifier_list());
         }
+        return identifierList;
     }
 
+    /**
+     *
+     */
     public void declarations() {
         if (lookahead.getType() == TokenType.VAR) {
             match(TokenType.VAR);
-            identifier_list();
+            ArrayList<String> identifierList = identifier_list();
             match(TokenType.COLON);
-            type();
+            type(identifier_list());
             match(TokenType.SEMI_COLON);
             declarations();
         } else {
@@ -90,36 +121,70 @@ public class MyParser {
         }
     }
 
-    public void type() {
+    /**
+     *
+     * @param identifierList
+     */
+    public void type(ArrayList<String> identifierList) {
+        TokenType tokenType = null;
+        String dataType = null;
+        Integer arrayStart = null;
+        Integer arrayEnd = null;
+
         if (lookahead.getType() == TokenType.ARRAY) {
             match(TokenType.ARRAY);
             match(TokenType.LEFT_BRACKET);
-            match(TokenType.NUMBER);
+            if(lookahead.getType() == TokenType.NUMBER) {
+                arrayStart = Integer.parseInt(lookahead.getLexeme());
+                match(TokenType.NUMBER);
+            } else {
+                error("Expected array index");
+            }
             match(TokenType.COLON);
-            match(TokenType.NUMBER);
+            if(lookahead.getType() == TokenType.NUMBER) {
+                arrayEnd = Integer.parseInt(lookahead.getLexeme());
+                match(TokenType.NUMBER);
+            } else {
+                error("Expected array index");
+            }
             match(TokenType.RIGHT_BRACKET);
             match(TokenType.OF);
-            standard_type();
+            tokenType = TokenType.ARRAY;
+            dataType = standard_type();
         } else if (lookahead.getType() == TokenType.INTEGER || lookahead.getType() == TokenType.REAL) {
-            standard_type();
+            tokenType = TokenType.VAR;
+            dataType = standard_type();
         } else {
             error("Expected var type");
         }
     }
 
-    public void standard_type() {
+    /**
+     *
+     * @return
+     */
+    public String standard_type() {
+        String standardType = null;
+
         switch (lookahead.getType()) {
             case INTEGER:
+                standardType = "INTEGER";
                 match(TokenType.INTEGER);
                 break;
             case REAL:
+                standardType = "REAL";
                 match(TokenType.REAL);
                 break;
             default:
+                error("Expected type: INTEGER or REAL");
                 break;
         }
+        return standardType;
     }
 
+    /**
+     *
+     */
     public void subprogram_declarations() {
         if (lookahead.getType() == TokenType.FUNCTION || lookahead.getType() == TokenType.PROCEDURE) {
             subprogram_declaration();
@@ -131,6 +196,9 @@ public class MyParser {
         }
     }
 
+    /**
+     *
+     */
     public void subprogram_declaration() {
         subprogram_head();
         declarations();
@@ -138,25 +206,39 @@ public class MyParser {
         compound_statement();
     }
 
+    /**
+     *
+     */
     public void subprogram_head() {
+        String identifier = null;
+
         if (lookahead.getType() == TokenType.FUNCTION) {
             match(TokenType.FUNCTION);
-            match(TokenType.ID);
+            if(lookahead.getType() == TokenType.ID) {
+                identifier = lookahead.getLexeme();
+                match(TokenType.ID);
+            }
             arguments();
             match(TokenType.COLON);
-            standard_type();
+            symbolTable.add(identifier, TokenType.FUNCTION, standard_type(), null, null);
             match(TokenType.SEMI_COLON);
         } else if (lookahead.getType() == TokenType.PROCEDURE) {
             match(TokenType.PROCEDURE);
-            match(TokenType.ID);
+            if(lookahead.getType() == TokenType.ID) {
+                identifier = lookahead.getLexeme();
+                match(TokenType.ID);
+            }
             arguments();
+            symbolTable.add(identifier, TokenType.PROCEDURE, null, null, null);
             match(TokenType.SEMI_COLON);
-        }
-        else {
+        } else {
             error("Not a subprogram_head");
         }
     }
 
+    /**
+     *
+     */
     public void arguments() {
         if (lookahead.getType() == TokenType.LEFT_PAREN) {
             match(TokenType.LEFT_PAREN);
@@ -167,26 +249,35 @@ public class MyParser {
         }
     }
 
+    /**
+     *
+     */
     public void parameter_list() {
-        identifier_list();
+        ArrayList<String> identifierList = identifier_list();
         match(TokenType.COLON);
-        type();
+        type(identifierList);
         if (lookahead.getType() == TokenType.SEMI_COLON) {
             match(TokenType.SEMI_COLON);
             parameter_list();
         }
     }
 
+    /**
+     *
+     */
     public void compound_statement() {
         if (lookahead.getType() == TokenType.BEGIN) {
             match(TokenType.BEGIN);
             optional_statements();
             match(TokenType.END);
         } else {
-            error("compound statement");
+            error("Compound statement");
         }
     }
 
+    /**
+     *
+     */
     public void optional_statements() {
         TokenType nextType = lookahead.getType();
         if (nextType == TokenType.ID || nextType == TokenType.BEGIN || nextType == TokenType.IF || nextType == TokenType.WHILE) {
@@ -196,6 +287,9 @@ public class MyParser {
         }
     }
 
+    /**
+     *
+     */
     public void statement_list() {
         statement();
         if (lookahead.getType() == TokenType.SEMI_COLON) {
@@ -204,19 +298,21 @@ public class MyParser {
         }
     }
 
+    /**
+     *
+     */
     public void statement() {
         switch (lookahead.getType()) {
             case ID:
-                match(TokenType.ID);
-                if (lookahead.getType() == TokenType.LEFT_BRACKET) {
+                String identifier = lookahead.getLexeme();
+                if(symbolTable.isArrayName(identifier) || symbolTable.isVariableName(identifier)) {
                     variable();
-                } else if (lookahead.getType() == TokenType.LEFT_PAREN) {
-                    procedure_statement();
-                } else if (lookahead.getType() == TokenType.ASSIGNMENT_OP) {
                     match(TokenType.ASSIGNMENT_OP);
                     expression();
+                } else if(symbolTable.isFunctionName(identifier)) {
+                    procedure_statement();
                 } else {
-                    error("invalid statement");
+                    error(identifier + " has not been declared");
                 }
                 break;
             case IF:
@@ -235,25 +331,40 @@ public class MyParser {
                 match(TokenType.DO);
                 statement();
                 break;
+            case BEGIN:
+                compound_statement();
+                break;
             default:
-                error("statement expected");
+                error("Expected statement");
         }
     }
 
+    /**
+     *
+     */
     public void variable() {
+        match(TokenType.ID);
         if(lookahead.getType() == TokenType.LEFT_BRACKET) {
             match(TokenType.LEFT_BRACKET);
             expression();
             match(TokenType.RIGHT_BRACKET);
+        } else {
+            error("Expected expression");
         }
     }
 
+    /**
+     *
+     */
     public void procedure_statement() {
         match(TokenType.LEFT_PAREN);
         expression_list();
         match(TokenType.RIGHT_PAREN);
     }
 
+    /**
+     *
+     */
     public void expression_list() {
         expression();
         if (lookahead.getType() == TokenType.COMMA) {
@@ -262,6 +373,9 @@ public class MyParser {
         }
     }
 
+    /**
+     *
+     */
     public void expression() {
         simple_expression();
         if (isRelop(lookahead)) {
@@ -272,6 +386,9 @@ public class MyParser {
         }
     }
 
+    /**
+     *
+     */
     public void simple_expression() {
         if (isTerm(lookahead)) {
             term();
@@ -283,6 +400,9 @@ public class MyParser {
         }
     }
 
+    /**
+     *
+     */
     public void simple_part() {
         if (lookahead.getType() == TokenType.PLUS || lookahead.getType() == TokenType.MINUS) {
             addop();
@@ -331,12 +451,19 @@ public class MyParser {
                 match(TokenType.NUMBER);
                 break;
             case ID:
-                match(TokenType.ID);
-                // add if statement here
+                String identifier = lookahead.getLexeme();
+                if(symbolTable.isArrayName(identifier) || symbolTable.isVariableName(identifier)) {
+                    variable();
+                } else if(symbolTable.isFunctionName(identifier)) {
+                    procedure_statement();
+                } else {
+                    error(identifier + " has not been declared");
+                }
                 break;
-            //case NOT:
-            //    match(TokenType.NOT);
-            //    break;
+            case NOT:
+                match(TokenType.NOT);
+                factor();
+                break;
             default:
                 error("Factor");
                 break;

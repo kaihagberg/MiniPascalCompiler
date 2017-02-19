@@ -39,10 +39,10 @@ public class MyParserTest {
         System.out.println("SUCCESS!\n");
     }
 
-    //TODO: Fix this test and corresponding method as they currently do not work
+
     @Test
     public void variableTest() throws Exception {
-        MyParser instance = new MyParser("var[98];", true);
+        MyParser instance = new MyParser("", true);
         instance.variable();
         System.out.println("SUCCESS!\n");
     }
