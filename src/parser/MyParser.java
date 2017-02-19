@@ -113,7 +113,7 @@ public class MyParser {
             match(TokenType.VAR);
             ArrayList<String> identifierList = identifier_list();
             match(TokenType.COLON);
-            type(identifier_list());
+            type(identifierList);
             match(TokenType.SEMI_COLON);
             declarations();
         } else {
