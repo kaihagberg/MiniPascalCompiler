@@ -9,8 +9,8 @@ public class DeclarationsNode extends SyntaxTreeNode {
 
     private ArrayList<VariableNode> vars = new ArrayList<VariableNode>();
 
-    public void addVariable(ValueNode variable) {
-        vars.add(variable);
+    public void addVariable(VariableNode aVariable) {
+        vars.add(aVariable);
     }
 
     public String indentedToString(int level) {
