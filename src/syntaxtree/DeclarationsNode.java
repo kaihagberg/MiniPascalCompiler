@@ -13,6 +13,10 @@ public class DeclarationsNode extends SyntaxTreeNode {
         vars.add(aVariable);
     }
 
+    public void addDeclarations(DeclarationsNode declarationsNode) {
+        vars.addAll(declarationsNode.vars);
+    }
+
     public String indentedToString(int level) {
         String answer = this.indentation(level);
         for(VariableNode variable : vars) {

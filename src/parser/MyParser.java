@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import scanner.MyScanner;
 import scanner.Token;
 import scanner.TokenType;
+import syntaxtree.*;
 
 /**
  * The parser recognizes whether an input string of tokens is an expression.
@@ -69,7 +70,8 @@ public class MyParser {
      * Main method in the recognizer. This will recursively call all other methods.
      * @return returns true if no errors are found
      */
-    public boolean program() {
+    public ProgramNode program() {
+        ProgramNode programNode = new ProgramNode(lookahead.getLexeme());
         if (lookahead.getType() == TokenType.PROGRAM) {
             match(TokenType.PROGRAM);
             if(lookahead.getType() == TokenType.ID) {
@@ -80,14 +82,14 @@ public class MyParser {
                 error("Expected program identifier");
             }
             match(TokenType.SEMI_COLON);
-            declarations();
-            subprogram_declarations();
-            compound_statement();
+            programNode.setVariables(declarations());
+            programNode.setFunctions(subprogram_declarations());
+            programNode.setMain(compound_statement());
             match(TokenType.PERIOD);
         } else {
             error("program");
         }
-        return withoutError;
+        return programNode;
     }
 
     /**
@@ -108,17 +110,22 @@ public class MyParser {
     /**
      *
      */
-    public void declarations() {
+    public DeclarationsNode declarations() {
+        DeclarationsNode declarationsNode = new DeclarationsNode();
         if (lookahead.getType() == TokenType.VAR) {
             match(TokenType.VAR);
             ArrayList<String> identifierList = identifier_list();
+            for (String id : identifierList) {
+                declarationsNode.addVariable(new VariableNode(id));
+            }
             match(TokenType.COLON);
             type(identifierList);
             match(TokenType.SEMI_COLON);
-            declarations();
+            declarationsNode.addDeclarations(declarations());
         } else {
             //lambda case
         }
+        return declarationsNode;
     }
 
     /**
@@ -185,7 +192,8 @@ public class MyParser {
     /**
      *
      */
-    public void subprogram_declarations() {
+    public SubProgramDeclarationsNode subprogram_declarations() {
+        SubProgramDeclarationsNode subProgramDeclarationsNode = new SubProgramDeclarationsNode();
         if (lookahead.getType() == TokenType.FUNCTION || lookahead.getType() == TokenType.PROCEDURE) {
             subprogram_declaration();
             match(TokenType.SEMI_COLON);
@@ -194,6 +202,7 @@ public class MyParser {
         else {
             //lambda case
         }
+        return subProgramDeclarationsNode;
     }
 
     /**
@@ -265,7 +274,8 @@ public class MyParser {
     /**
      *
      */
-    public void compound_statement() {
+    public CompoundStatementNode compound_statement() {
+        CompoundStatementNode compoundStatementNode = new CompoundStatementNode();
         if (lookahead.getType() == TokenType.BEGIN) {
             match(TokenType.BEGIN);
             optional_statements();
@@ -273,6 +283,7 @@ public class MyParser {
         } else {
             error("Compound statement");
         }
+        return compoundStatementNode;
     }
 
     /**
